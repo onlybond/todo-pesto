@@ -6,12 +6,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Button } from "./ui/button";
+import { useAppAppSelector, useAppDispatch } from "@/lib/store/hooks";
+import { addTodo } from "@/lib/store/features/todos/todosSlice";
+import { toast } from "sonner";
 export const TodoSchema = z.object({
   title: z.string().min(2),
   desc: z.string().min(10),
   status: z.enum(["todo", "inprogress", "completed"]),
 });
 const TodoForm = () => {
+  const todos = useAppAppSelector((state) => state.todos.todos);
+  const dispatch = useAppDispatch();
   const form = useForm<z.infer<typeof TodoSchema>>({
     resolver: zodResolver(TodoSchema),
     defaultValues: {
@@ -21,18 +26,28 @@ const TodoForm = () => {
     },
   });
   const onSubmit = (values: z.infer<typeof TodoSchema>) => {
-    console.log(values);
+    const todo = {
+      id: todos.length,
+      ...values,
+      creationDate: new Date().toISOString(),
+    };
+    dispatch(addTodo(todo));
+    toast.success("Added Todo");
     form.reset();
   };
   return (
-    <div className="border-black border-2 p-4 w-full rounded-md">
+    <div className="border-black border-2 p-4 w-full flex  items-center rounded-md">
+      <div className="text-xl font-bold w-48">Add Todo</div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex gap-4 w-full items-center"
+        >
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="">
                 <FormControl>
                   <Input placeholder="Enter Title" {...field} />
                 </FormControl>
@@ -45,28 +60,12 @@ const TodoForm = () => {
             control={form.control}
             name="desc"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="flex-1">
                 <FormControl>
                   <Input placeholder="Enter Description" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <select
-                id="status"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-fit py-3"
-                {...field}
-              >
-                <option value="todo">Todo</option>
-                <option value="inprogress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
             )}
           />
           <Button type="submit">Add Todo</Button>

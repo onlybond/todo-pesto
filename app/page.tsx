@@ -8,7 +8,6 @@ export default function Home() {
   return (
     <div className="min-w-screen flex flex-col gap-4 container justify-center items-center">
       <TodoForm/>
-      <FilterDropDown/>
       <TodoList/>
     </div>
   );
