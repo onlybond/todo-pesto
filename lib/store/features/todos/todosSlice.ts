@@ -1,12 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-
+import {v4 as uuidv4} from 'uuid'
 export interface todosState{
   todos: {
     id: number;
     title: string;
     desc:string;
     status: string
+    completedby?: string
+
   }[]
   filter:string
 }
@@ -20,19 +22,20 @@ export const todosSlice = createSlice({
   name: "todos",
   initialState:initialTodos,
   reducers: {
-    addTodo: (state, action: PayloadAction<{id: number, title: string,desc:string, status:string}>) => {
-      state.todos.push(action.payload)
+    addTodo: (state, action: PayloadAction<{title: string,desc:string, status:string}>) => {
+      const newTodo = {
+        id: uuidv4(),
+        ...action.payload
+      }
+      state.todos.push(newTodo)
     },
     deleteTodo: (state, action: PayloadAction<number>) => {
       state.todos = state.todos.filter((todo) => todo.id !== action.payload)
     },
     updateTodo: (state, action: PayloadAction<{id: number, title: string,desc:string,status:string}>) => {
-      state.todos = state.todos.map((todo) => {
-        if(todo.id === action.payload.id){
-          return action.payload
-        }
-        return todo
-      })
+      const index = state.todos.findIndex((todo) => todo.id === action.payload.id)
+      if (index === -1) return
+      state.todos[index] = {...state.todos[index],...action.payload}
     },
     updateFilter: (state,action)=>{
       state.filter = action.payload

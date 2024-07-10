@@ -29,7 +29,6 @@ const TodoForm = () => {
     try{
 
       const todo = {
-        id: todos.length,
         ...values,
         creationDate: new Date().toISOString(),
       };
@@ -42,18 +41,18 @@ const TodoForm = () => {
     }
   };
   return (
-    <div className="border-black border-2 p-4 w-full flex  items-center rounded-md">
+    <div className="border-black border-2 p-4 w-full flex-col sm:flex-row flex  sm:items-center rounded-md">
       <div className="text-xl font-bold w-48">Add Todo</div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex gap-4 w-full items-center"
+          className="flex gap-4 w-full flex-col sm:flex-row sm:items-center"
         >
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
-              <FormItem className="">
+              <FormItem className="w-full sm:w-fit">
                 <FormControl>
                   <Input placeholder="Enter Title" {...field} />
                 </FormControl>
@@ -66,7 +65,7 @@ const TodoForm = () => {
             control={form.control}
             name="desc"
             render={({ field }) => (
-              <FormItem className="flex-1">
+              <FormItem className="sm:flex-1 w-full">
                 <FormControl>
                   <Input placeholder="Enter Description" {...field} />
                 </FormControl>
