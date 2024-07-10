@@ -8,10 +8,12 @@ export interface todosState{
     desc:string;
     status: string
   }[]
+  filter:string
 }
 
 const initialTodos:todosState = {
-  todos: []
+  todos: [],
+  filter:"All"
 }
 
 export const todosSlice = createSlice({
@@ -31,11 +33,14 @@ export const todosSlice = createSlice({
         }
         return todo
       })
+    },
+    updateFilter: (state,action)=>{
+      state.filter = action.payload
     }
   }
 })
 
 
-export const  {addTodo,deleteTodo,updateTodo} = todosSlice.actions
+export const  {addTodo,deleteTodo,updateTodo,updateFilter} = todosSlice.actions
 
 export default todosSlice.reducer

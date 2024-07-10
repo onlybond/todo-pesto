@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { deleteTodo, updateTodo } from "@/lib/store/features/todos/todosSlice";
-import { useAppAppSelector, useAppDispatch } from "@/lib/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import {
@@ -24,17 +24,16 @@ import { z } from "zod";
 import { TodoSchema } from "./TodoForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import {toast} from 'sonner'
-import { FilterDropDown } from "./FilterDropDown";
+import { toast } from "sonner";
+import { Filter } from "./FilterDropDown";
 
-interface Todo{
-  id:number
-  title:string
-  desc:string
-  status:string
+interface Todo {
+  id: number;
+  title: string;
+  desc: string;
+  status: string;
 }
 const TodoList = () => {
-
   const [open, setOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
 
@@ -42,42 +41,70 @@ const TodoList = () => {
     resolver: zodResolver(TodoSchema),
   });
 
-  const todos = useAppAppSelector((state) => state.todos.todos);
-
+  const todos = useAppSelector((state) => state.todos.todos);
+  const filter = useAppSelector((state) => state.todos.filter);
+  console.log(filter);
   const dispatch = useAppDispatch();
 
-  const handleUpdate = (todo:Todo) => {
-    setSelectedTodo(todo);
-    form.reset({
-      title: todo.title,
-      desc: todo.desc,
-      status: todo.status as "todo" | "inprogress" | "completed",
-    });
-    setOpen(true);
+  const filteredTodos = (() => {
+    switch (filter) {
+      case "todo":
+        return todos.filter((todo) => todo.status === "todo");
+
+      case "inprogress":
+        return todos.filter((todo) => todo.status === "inprogress");
+
+      case "completed":
+        return todos.filter((todo) => todo.status === "completed");
+
+      default:
+        return todos;
+    }
+  })();
+  const handleUpdate = (todo: Todo) => {
+    try {
+      setSelectedTodo(todo);
+      form.reset({
+        title: todo.title,
+        desc: todo.desc,
+        status: todo.status as "todo" | "inprogress" | "completed",
+      });
+      setOpen(true);
+    } catch (err: any) {
+      console.log(err.message);
+    }
   };
 
   const handleSave = () => {
-    if (!selectedTodo) return;
-
-  const updatedTodo = {
-   ...selectedTodo,
-   ...form.getValues(),
-    updatedDate: new Date().toISOString(),
-    status: form.getValues().status as "todo" | "inprogress" | "completed",
+    try {
+      if (!selectedTodo) return;
+      const updatedTodo = {
+        ...selectedTodo,
+        ...form.getValues(),
+        updatedDate: new Date().toISOString(),
+        status: form.getValues().status as "todo" | "inprogress" | "completed",
+      };
+      dispatch(updateTodo(updatedTodo));
+      toast.success("updated todo successfully");
+      setOpen(false);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
-  dispatch(updateTodo(updatedTodo));
-  toast.success("updated todo successfully")
-  setOpen(false);
-  };
 
-  const handleDelete = (id:number) => {
-    dispatch(deleteTodo(id))
-    toast.success("deleted todo successfully")
+  const handleDelete = (id: number) => {
+    try {
+      dispatch(deleteTodo(id));
+      toast.success("deleted todo successfully");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
   return (
     <div className="border-2 border-black w-full p-4 rounded-md space-y-4">
-      <FilterDropDown/>
-      {todos.map((todo) => (
+      <Filter />
+      {filteredTodos.length !== 0 ?
+      filteredTodos.map((todo) => (
         <div
           key={todo.id}
           className="border-2 gap-4  border-black p-2 rounded-sm flex justify-between items-center"
@@ -103,10 +130,9 @@ const TodoList = () => {
           >
             Update
           </Button>
-          <Button
-            onClick={()=>handleDelete(todo.id)}
-            variant={"destructive"}
-          >Delete</Button>
+          <Button onClick={() => handleDelete(todo.id)} variant={"destructive"}>
+            Delete
+          </Button>
           {open && selectedTodo === todo ? (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogContent>
@@ -174,7 +200,12 @@ const TodoList = () => {
                     />
                     <DialogFooter>
                       <Button type="submit">Save</Button>
-                      <Button variant={"outline"} onClick={() => setOpen(false)}>Cancel</Button>
+                      <Button
+                        variant={"outline"}
+                        onClick={() => setOpen(false)}
+                      >
+                        Cancel
+                      </Button>
                     </DialogFooter>
                   </form>
                 </Form>
@@ -182,7 +213,12 @@ const TodoList = () => {
             </Dialog>
           ) : null}
         </div>
-      ))}
+      ))
+    :
+  (
+    <div className="w-full text-center">No todos Found</div>
+  )
+    }
     </div>
   );
 };

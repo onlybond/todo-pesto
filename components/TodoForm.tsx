@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Button } from "./ui/button";
-import { useAppAppSelector, useAppDispatch } from "@/lib/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { addTodo } from "@/lib/store/features/todos/todosSlice";
 import { toast } from "sonner";
 export const TodoSchema = z.object({
@@ -15,7 +15,7 @@ export const TodoSchema = z.object({
   status: z.enum(["todo", "inprogress", "completed"]),
 });
 const TodoForm = () => {
-  const todos = useAppAppSelector((state) => state.todos.todos);
+  const todos = useAppSelector((state) => state.todos.todos);
   const dispatch = useAppDispatch();
   const form = useForm<z.infer<typeof TodoSchema>>({
     resolver: zodResolver(TodoSchema),
@@ -26,14 +26,20 @@ const TodoForm = () => {
     },
   });
   const onSubmit = (values: z.infer<typeof TodoSchema>) => {
-    const todo = {
-      id: todos.length,
-      ...values,
-      creationDate: new Date().toISOString(),
-    };
-    dispatch(addTodo(todo));
-    toast.success("Added Todo");
-    form.reset();
+    try{
+
+      const todo = {
+        id: todos.length,
+        ...values,
+        creationDate: new Date().toISOString(),
+      };
+      dispatch(addTodo(todo));
+      toast.success("Added Todo");
+      form.reset();
+    }
+    catch(err:any){
+      toast.error(err.message);
+    }
   };
   return (
     <div className="border-black border-2 p-4 w-full flex  items-center rounded-md">
