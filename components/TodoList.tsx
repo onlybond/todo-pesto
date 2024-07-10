@@ -29,7 +29,7 @@ import { Filter } from "./FilterDropDown";
 import { Edit, Trash } from "lucide-react";
 
 interface Todo {
-  id: number;
+  id: string;
   title: string;
   desc: string;
   status: string;
@@ -98,7 +98,7 @@ const TodoList = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     try {
       dispatch(deleteTodo(id));
       toast.success("deleted todo successfully");

@@ -11,7 +11,7 @@ export const Filter = () => {
     dispatch(updateFilter(filter))
   }
   return (
-    <div className='w-full flex items-center justify-end p-4 rounded-lg gap-6'>
+    <div className='w-full flex items-center p-4 rounded-lg gap-6'>
       <h1 className='text-lg font-semibold'>Filter By Status</h1>
       <div className='w-fit'>
       <Select onValueChange={(e)=>handleFilterChange(e)}>

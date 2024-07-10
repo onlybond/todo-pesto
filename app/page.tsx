@@ -1,4 +1,3 @@
-import { FilterDropDown } from "@/components/FilterDropDown";
 import Nav from "@/components/Nav";
 import TodoForm from "@/components/TodoForm";
 import TodoList from "@/components/TodoList";

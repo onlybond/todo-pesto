@@ -1,9 +1,10 @@
+import {} from "@reduxjs/toolkit/query"
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import {v4 as uuidv4} from 'uuid'
 export interface todosState{
   todos: {
-    id: number;
+    id: string;
     title: string;
     desc:string;
     status: string
@@ -29,10 +30,10 @@ export const todosSlice = createSlice({
       }
       state.todos.push(newTodo)
     },
-    deleteTodo: (state, action: PayloadAction<number>) => {
+    deleteTodo: (state, action: PayloadAction<string>) => {
       state.todos = state.todos.filter((todo) => todo.id !== action.payload)
     },
-    updateTodo: (state, action: PayloadAction<{id: number, title: string,desc:string,status:string}>) => {
+    updateTodo: (state, action: PayloadAction<{id: string, title: string,desc:string,status:string}>) => {
       const index = state.todos.findIndex((todo) => todo.id === action.payload.id)
       if (index === -1) return
       state.todos[index] = {...state.todos[index],...action.payload}
