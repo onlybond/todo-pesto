@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     const todo = await Todo.findByIdAndUpdate(id, reqBody, {
-      function (err, docs) { 
+      function (err:any, docs:any) { 
         if (err){ 
             console.log(err) 
         } 

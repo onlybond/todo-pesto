@@ -34,7 +34,7 @@ export async function POST(req:NextRequest) {
     };
     const todo = await Todo.create(todoDataWithDefaults)
     return NextResponse.json({todo})
-  } catch (err) {
+  } catch (err:any) {
     console.log(err.message)
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
