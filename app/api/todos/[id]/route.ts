@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 
 let dbConnected = false;
 
-export async function connectToDB() {
+async function connectToDB() {
   if (!dbConnected) {
     await connectDB();
     dbConnected = true;

@@ -6,15 +6,13 @@ import mongoose from 'mongoose';
 
 let dbConnected = false;
 
-export async function connectToDB() {
+async function connectToDB() {
   if (!dbConnected) {
     await connectDB();
     dbConnected = true;
   }
 }
 export async function GET(req: NextRequest) {
-  //get todos from mongodb
-
   try {
     await connectToDB();
     const todos = await Todo.find();
