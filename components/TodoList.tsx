@@ -26,7 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { Filter } from "./FilterDropDown";
-import { Edit, Trash } from "lucide-react";
+import { Edit, LoaderIcon, Trash } from "lucide-react";
 
 interface Todo {
   id: string;
@@ -38,11 +38,10 @@ interface Todo {
 const TodoList = () => {
   const [open, setOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
-
+  const [loadingTodoId, setLoadingTodoId] = useState<string | null>(null);
   const form = useForm<z.infer<typeof TodoSchema>>({
     resolver: zodResolver(TodoSchema),
   });
-
   const todos = useAppSelector((state) => state.todos.todos);
   const filter = useAppSelector((state) => state.todos.filter);
   const dispatch = useAppDispatch();
@@ -63,6 +62,7 @@ const TodoList = () => {
     }
   })();
   const handleUpdate = (todo: Todo) => {
+    setLoadingTodoId(todo.id)
     try {
       setSelectedTodo(todo);
       form.reset({
@@ -73,6 +73,8 @@ const TodoList = () => {
       setOpen(true);
     } catch (err: any) {
       console.log(err.message);
+    } finally {
+      setLoadingTodoId(null);
     }
   };
 
@@ -82,28 +84,52 @@ const TodoList = () => {
       const updatedTodo = {
         ...selectedTodo,
         ...form.getValues(),
-        updatedDate: new Date().toISOString(),
+        updatedAt: new Date().toUTCString(),
         status: form.getValues().status as "todo" | "inprogress" | "completed",
         completedby:
-          form.getValues().status === "completed"
-            ? new Date().toUTCString()
-            : null,
+          form.getValues().status === "completed" && new Date().toUTCString(),
       };
-      console.log(selectedTodo);
-      dispatch(updateTodo(updatedTodo));
-      toast.success("updated todo successfully");
+      fetch(`/api/todos/${selectedTodo.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedTodo),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          dispatch(updateTodo(updatedTodo));
+          toast.success("updated todo successfully");
+        })
+        .catch((err) => {
+          toast.error(err.message);
+        });
       setOpen(false);
+      console.log(updatedTodo);
     } catch (err: any) {
       toast.error(err.message);
     }
   };
 
   const handleDelete = (id: string) => {
+    setLoadingTodoId(id);
     try {
-      dispatch(deleteTodo(id));
-      toast.success("deleted todo successfully");
+      fetch(`/api/todos/${id}`, {
+        method: "DELETE",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          dispatch(deleteTodo(id));
+          toast.success("deleted todo successfully");
+        })
+        .catch((err) => {
+          toast.error(err.message);
+        });
+      setLoadingTodoId(null);
     } catch (err: any) {
       toast.error(err.message);
+    } finally {
+      setLoadingTodoId(null);
     }
   };
   return (
@@ -119,10 +145,8 @@ const TodoList = () => {
             <p className="truncate opacity-50 flex-1">{todo.desc}</p>
             {todo.completedby && (
               <p className="opacity-75 text-sm truncate">
-                Completed By: 
-                <span className="font-bold text-xs">
-                {todo.completedby}
-                </span>
+                Completed By:
+                <span className="font-bold text-xs">{todo.completedby}</span>
               </p>
             )}
             <div
@@ -139,19 +163,33 @@ const TodoList = () => {
             <Button
               onClick={() => handleUpdate(todo)}
               variant={"secondary"}
-              disabled={todo.status === "completed"}
+              disabled={todo.status === "completed" || loadingTodoId === todo.id}
               className="bg-blue-300 text-white disabled:cursor-not-allowed
             hover:bg-blue-200"
             >
-              <Edit className="h-4 w-4 sm:mr-2 m-0 block sm:hidden" />
-              <span className="hidden sm:inline">Update</span>
+              {loadingTodoId === todo.id ? (
+                <LoaderIcon className="animate-spin"/>
+              ) : (
+                <>
+                  <Edit className="h-4 w-4 sm:mr-2 m-0 block sm:hidden" />
+
+                  <span className="hidden sm:inline">Update</span>
+                </>
+              )}
             </Button>
             <Button
               onClick={() => handleDelete(todo.id)}
               variant={"destructive"}
+              disabled={loadingTodoId === todo.id}
             >
-              <Trash className="h-4 w-4 sm:mr-2 m-0 block sm:hidden" />
-              <span className="hidden sm:inline">Delete</span>
+              {loadingTodoId === todo.id ?  (
+                <LoaderIcon className="animate-spin" />
+              ) : (
+                <>
+                  <Trash className="h-4 w-4 sm:mr-2 m-0 block sm:hidden" />
+                  <span className="hidden sm:inline">Delete</span>
+                </>
+              )}
             </Button>
             {open && selectedTodo === todo ? (
               <Dialog open={open} onOpenChange={setOpen}>

@@ -1,21 +1,23 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "./ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Button } from "./ui/button";
-import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
+import { useAppDispatch } from "@/lib/store/hooks";
 import { addTodo } from "@/lib/store/features/todos/todosSlice";
 import { toast } from "sonner";
+import mongoose from "mongoose";
+import { LoaderIcon } from "lucide-react";
 export const TodoSchema = z.object({
   title: z.string().min(2),
   desc: z.string().min(10),
   status: z.enum(["todo", "inprogress", "completed"]),
 });
 const TodoForm = () => {
-  const todos = useAppSelector((state) => state.todos.todos);
+  const [isLoading,setIsLoading] = useState<boolean | undefined>(false)
   const dispatch = useAppDispatch();
   const form = useForm<z.infer<typeof TodoSchema>>({
     resolver: zodResolver(TodoSchema),
@@ -25,19 +27,36 @@ const TodoForm = () => {
       status: "todo",
     },
   });
-  const onSubmit = (values: z.infer<typeof TodoSchema>) => {
-    try{
-
+  const onSubmit = async (values: z.infer<typeof TodoSchema>) => {
+    try {
+      setIsLoading(true)
       const todo = {
+        id: new  mongoose.Types.ObjectId().toString(),
         ...values,
-        creationDate: new Date().toISOString(),
+        createdAt: new Date().toUTCString(),
       };
-      dispatch(addTodo(todo));
-      toast.success("Added Todo");
-      form.reset();
-    }
-    catch(err:any){
+      console.log(todo)
+      await fetch("/api/todos", {
+        method: "POST",
+        body: JSON.stringify(todo),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          dispatch(addTodo(todo));
+          console.log(data);
+          toast.success("Added Todo");
+          form.reset();
+        })
+        .catch((error) => {
+          toast.error(error.message);
+        });
+      setIsLoading(false)
+    } catch (err: any) {
       toast.error(err.message);
+      setIsLoading(false)
     }
   };
   return (
@@ -73,7 +92,12 @@ const TodoForm = () => {
               </FormItem>
             )}
           />
-          <Button type="submit">Add Todo</Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ?
+            <LoaderIcon className="animate-spin"/>:
+            `Add Todo`
+            }
+            </Button>
         </form>
       </Form>
     </div>

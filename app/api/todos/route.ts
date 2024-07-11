@@ -1,23 +1,43 @@
-import dbConnect from "@/lib/mongodb";
-import db from "@/lib/mongodb";
-import mongoose from "mongoose";
-import { NextApiHandler } from "next";
+import { TodoSchema } from './../../../components/TodoForm';
+import connectDB from "@/lib/mongodb/dbConnect";
 import { NextRequest, NextResponse } from "next/server";
+import Todo from '@/lib/mongodb/models/Todo'
+import mongoose from 'mongoose';
 
+let dbConnected = false;
+
+export async function connectToDB() {
+  if (!dbConnected) {
+    await connectDB();
+    dbConnected = true;
+  }
+}
 export async function GET(req: NextRequest) {
   //get todos from mongodb
-  await dbConnect;
+
   try {
-    const db = mongoose.connection;
-    const collection = db.collection("todos");
-    const cursor = await collection.find();
-    const todos = await cursor.toArray();
-    return NextResponse.json(todos);
-  } catch (err) {
-    console.log(err);
+    await connectToDB();
+    const todos = await Todo.find();
+    return NextResponse.json({ message: todos});
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
-  return NextResponse.json({ name: "John Doe" });
+export async function POST(req:NextRequest) {
+  try {
+    await connectToDB();
+    const todosData = await req.json()
+    const todoDataWithDefaults = {
+      ...todosData,
+      _id: todosData.id  || new mongoose.Types.ObjectId().toString(),
+      createdAt: todosData.createdAt || new Date().toUTCString(),
+      updatedAt: todosData.updatedAt || new Date().toUTCString(),
+    };
+    const todo = await Todo.create(todoDataWithDefaults)
+    return NextResponse.json({todo})
+  } catch (err) {
+    console.log(err.message)
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

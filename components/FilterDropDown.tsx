@@ -1,7 +1,7 @@
-import React, { FormEvent } from 'react'
+import React from 'react'
 import { Select, SelectContent, SelectItem } from './ui/select'
 import { SelectTrigger, SelectValue } from './ui/select'
-import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
+import { useAppDispatch,  } from '@/lib/store/hooks'
 import { updateFilter } from '@/lib/store/features/todos/todosSlice'
 
 export const Filter = () => {
