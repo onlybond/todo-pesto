@@ -13,7 +13,6 @@ export interface todosState{
   }[]
   filter:string
 }
-
 const initialTodos:todosState = {
   todos: [],
   filter:"All"
@@ -23,6 +22,9 @@ export const todosSlice = createSlice({
   name: "todos",
   initialState:initialTodos,
   reducers: {
+    getTodos: (state,action)=>{
+      state.todos = action.payload
+    },
     addTodo: (state, action: PayloadAction<{title: string,desc:string, status:string}>) => {
       const newTodo = {
         id: uuidv4(),
